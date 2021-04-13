@@ -1,4 +1,5 @@
 import numpy as np
+
 from numpy import linalg as la
 from functools import reduce
 
@@ -78,18 +79,34 @@ def schrijver(A, b):
 
 
 
+# this is for demonstration purpose
+# this program generates random examples until it sees
+# A, b such that b\in\conv(a_1,...,a_n)
 if __name__ == "__main__":
-    A = np.array([[1,1,-1,-1],[1,-1,1,-1],[3,3,3,3]])
-    b = np.array([2,2,0])
+    while True:
+        m = np.random.randint(3, 11) # 3, 4, ..., 10
+        n = np.random.randint(3, 11)
+        A = np.random.randint(-10, 11, (m,n))
+        b = np.random.randint(-10, 11, (m,1))
 
-    isin, vec = schrijver(A,b)
-    if isin:
-        print(b,end=" ")
-        print("is in conv(A)")
-        print("coefficients:",end=" ")
-        print(vec)
-    else:
-        print(b,end=" ")
-        print("is not in conv(A)")
-        print("certificate:",end=" ")
-        print(vec)
+        print("A = ")
+        print(A)
+        print("b = ")
+        print(b)
+        print()
+
+        try: 
+            isin, vec = schrijver(A,b)
+            if isin:
+                print(b,end=" ")
+                print("is in conv(A)")
+                print("coefficients:",end=" ")
+                print(vec)
+                break
+            else:
+                print(b,end=" ")
+                print("is not in conv(A)")
+                print("certificate:",end=" ")
+                print(vec)
+        except IncorrectMatrixDimensionError as e:
+            print(e)
