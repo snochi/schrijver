@@ -41,23 +41,15 @@ def sch(columns, b):
             counter = 0
             for idx in range(n):
                 if idx in indices:
-                    coefficients.append(lambdas[counter])
+                    coefficients.append(lambdas[counter][0])
+                    counter += 1
                 else:
                     coefficients.append(0)
             return True, np.array(coefficients)
         # find h
         h = min(filter(lambda idx: lambdas[idx]<0, indices))
         # find c
-        subbasis = []
-        for idx in indices:
-            if idx!=h:
-                subbasis.append(columns[idx])
-        submatrix = np.column_stack(tuple(subbasis + [np.zeros(m)]))
-        eigvals, eigvecs = la.eig(np.transpose(submatrix))
-        zero_idx = np.where(eigvals==0)
-        c = eigvecs[:,zero_idx[0][0]]
-        if np.inner(c,columns[h]) < 0: # this cannot be 0
-            c = -c
+        c = la.inv(matrix)[h]
         # second if
         # -1e-8 is to account for the imprecision in floating-point system
         if reduce(lambda x, y: x and y, map(lambda a: np.inner(c,a) >= -1e-8, basis), True): 
@@ -66,6 +58,9 @@ def sch(columns, b):
         s = min(filter(lambda idx: np.inner(c,columns[idx])<0, range(n)))
         # replace a_h with a_s
         basis = subbasis.append(columns[s])
+        # update indices also
+        indices.remove(h)
+        indiecs.append(s)
 
 
 # essentially sch, but uses matrix instead of list of column vectors
@@ -83,7 +78,10 @@ def schrijver(A, b):
 # this program generates random examples until it sees
 # A, b such that b\in\conv(a_1,...,a_n)
 if __name__ == "__main__":
+    np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
     while True:
+        print("============================================================")
+        print()
         m = np.random.randint(3, 11) # 3, 4, ..., 10
         n = np.random.randint(3, 11)
         A = np.random.randint(-10, 11, (m,n))
@@ -97,6 +95,7 @@ if __name__ == "__main__":
 
         try: 
             isin, vec = schrijver(A,b)
+            vec = vec.astype(float) # to remove unnecessary 0.j's
             if isin:
                 print(b,end=" ")
                 print("is in conv(A)")
@@ -110,3 +109,6 @@ if __name__ == "__main__":
                 print(vec)
         except IncorrectMatrixDimensionError as e:
             print(e)
+
+        print()
+        print()
